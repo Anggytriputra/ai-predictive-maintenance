@@ -26,8 +26,13 @@ model SensorDataLog {
   machineId   String
   temperature Float
   vibration   Float
-  current     Float
-  voltage     Float
+  currentR    Float
+  currentS    Float
+  currentT    Float
+  currentN    Float
+  voltageR    Float
+  voltageS    Float
+  voltageT    Float
   timestamp   DateTime @default(now())
 
   machine     Machine  @relation(fields: [machineId], references: [id])

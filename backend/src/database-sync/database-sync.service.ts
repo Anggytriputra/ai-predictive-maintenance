@@ -49,8 +49,13 @@ export class DatabaseSyncService {
           machineId: r.motorId,
           temperature: r.temperature,
           vibration: r.vibration,
-          current: r.current,
-          voltage: r.voltage,
+          currentR: r.currentR,
+          currentS: r.currentS,
+          currentT: r.currentT,
+          currentN: r.currentN,
+          voltageR: r.voltageR,
+          voltageS: r.voltageS,
+          voltageT: r.voltageT,
           timestamp: new Date(r.timestamp),
         }))
       });

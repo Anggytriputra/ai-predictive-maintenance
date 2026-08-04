@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { Activity, Zap, ThermometerSun, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Activity, Zap, ThermometerSun, AlertTriangle, CheckCircle2, Settings } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface SensorData {
@@ -10,8 +10,13 @@ interface SensorData {
   timestamp: string;
   temperature: number;
   vibration: number;
-  current: number;
-  voltage: number;
+  currentR: number;
+  currentS: number;
+  currentT: number;
+  currentN: number;
+  voltageR: number;
+  voltageS: number;
+  voltageT: number;
 }
 
 const SOCKET_URL = 'http://localhost:3000';
@@ -96,9 +101,14 @@ export default function Dashboard() {
                 }`}
               >
                 <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-bold text-gray-100">{id}</h3>
-                    <p className="text-xs text-gray-500 mt-1">Real-time update</p>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-500/20 rounded-lg">
+                      <Settings className="w-5 h-5 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-100">{id}</h3>
+                      <p className="text-xs text-gray-500 mt-1">Real-time update</p>
+                    </div>
                   </div>
                   <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 border ${getStatusColor(latest.temperature)}`}>
                     {getStatusIcon(latest.temperature)}
@@ -185,6 +195,52 @@ export default function Dashboard() {
                       />
                     </LineChart>
                   </ResponsiveContainer>
+                </div>
+
+                {/* 3-Phase Analytics Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-black/30 rounded-2xl p-5 border border-white/5">
+                    <h3 className="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><Zap className="w-4 h-4 text-cyan-400"/> Current (Amperage)</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white/[0.03] p-3 rounded-xl border border-white/5">
+                        <div className="text-xs text-gray-500 mb-1">Phase R</div>
+                        <div className="font-mono text-lg text-emerald-400">{motors[selectedMotor]?.[motors[selectedMotor].length - 1]?.currentR?.toFixed(2) || '0.00'} A</div>
+                      </div>
+                      <div className="bg-white/[0.03] p-3 rounded-xl border border-white/5">
+                        <div className="text-xs text-gray-500 mb-1">Phase S</div>
+                        <div className="font-mono text-lg text-emerald-400">{motors[selectedMotor]?.[motors[selectedMotor].length - 1]?.currentS?.toFixed(2) || '0.00'} A</div>
+                      </div>
+                      <div className="bg-white/[0.03] p-3 rounded-xl border border-white/5">
+                        <div className="text-xs text-gray-500 mb-1">Phase T</div>
+                        <div className="font-mono text-lg text-emerald-400">{motors[selectedMotor]?.[motors[selectedMotor].length - 1]?.currentT?.toFixed(2) || '0.00'} A</div>
+                      </div>
+                      <div className="bg-white/[0.03] p-3 rounded-xl border border-white/5">
+                        <div className="text-xs text-gray-500 mb-1">Neutral N</div>
+                        <div className="font-mono text-lg text-gray-400">{motors[selectedMotor]?.[motors[selectedMotor].length - 1]?.currentN?.toFixed(2) || '0.00'} A</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-black/30 rounded-2xl p-5 border border-white/5">
+                    <h3 className="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><Activity className="w-4 h-4 text-indigo-400"/> Voltage</h3>
+                    <div className="grid grid-cols-2 gap-3 h-[calc(100%-2.5rem)]">
+                      <div className="bg-white/[0.03] p-3 rounded-xl border border-white/5">
+                        <div className="text-xs text-gray-500 mb-1">Phase R</div>
+                        <div className="font-mono text-lg text-indigo-400">{motors[selectedMotor]?.[motors[selectedMotor].length - 1]?.voltageR?.toFixed(0) || '0'} V</div>
+                      </div>
+                      <div className="bg-white/[0.03] p-3 rounded-xl border border-white/5">
+                        <div className="text-xs text-gray-500 mb-1">Phase S</div>
+                        <div className="font-mono text-lg text-indigo-400">{motors[selectedMotor]?.[motors[selectedMotor].length - 1]?.voltageS?.toFixed(0) || '0'} V</div>
+                      </div>
+                      <div className="bg-white/[0.03] p-3 rounded-xl border border-white/5">
+                        <div className="text-xs text-gray-500 mb-1">Phase T</div>
+                        <div className="font-mono text-lg text-indigo-400">{motors[selectedMotor]?.[motors[selectedMotor].length - 1]?.voltageT?.toFixed(0) || '0'} V</div>
+                      </div>
+                      <div className="bg-white/[0.03] p-3 rounded-xl border border-white/5 flex items-center justify-center opacity-50">
+                        <div className="text-xs text-gray-500 text-center">3-Phase<br/>System</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -36,6 +36,7 @@ The system is separated into two main microservices-like structures:
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v18+)
 - PostgreSQL Database (e.g., Supabase)
 - Redis Database (e.g., Upstash)
@@ -48,6 +49,7 @@ npm install
 ```
 
 Create a `.env` file in the `backend` directory:
+
 ```env
 # Supabase PostgreSQL connection
 DATABASE_URL="postgresql://user:password@host:port/postgres"
@@ -56,6 +58,7 @@ REDIS_URL="rediss://default:password@host:port"
 ```
 
 Generate Prisma Client and start the server:
+
 ```bash
 npx prisma generate
 npm run start:dev
@@ -69,6 +72,7 @@ npm install
 ```
 
 Start the frontend development server:
+
 ```bash
 npm run dev
 ```
@@ -80,4 +84,5 @@ Open [http://localhost:3001](http://localhost:3001) in your browser to see the d
 ![AI Predictive Maintenance Dashboard](./screenshot.png)
 
 ## 👨‍💻 Author
+
 Built by Anggy.
