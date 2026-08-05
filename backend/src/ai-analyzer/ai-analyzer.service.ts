@@ -9,11 +9,11 @@ export class AiAnalyzerService implements OnModuleInit {
   constructor(
     private readonly redisService: RedisService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   onModuleInit() {
     const subscriber = this.redisService.getSubscriber();
-    
+
     subscriber.on('message', async (channel, message) => {
       if (channel === 'sensor_data') {
         const data = JSON.parse(message);
@@ -44,8 +44,7 @@ export class AiAnalyzerService implements OnModuleInit {
             severity: riskLevel,
           }
         });
-        
-        // Publish alert to Redis so WebSocket can broadcast it
+
         const client = this.redisService.getClient();
         await client.publish('ai_alert', JSON.stringify({
           motorId: data.motorId,
