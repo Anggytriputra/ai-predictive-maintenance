@@ -13,6 +13,7 @@ export class IotSimulatorService {
   handleCron() {
     const client = this.redisService.getClient();
 
+
     this.motors.forEach((motorId) => {
       const data = {
         motorId,
