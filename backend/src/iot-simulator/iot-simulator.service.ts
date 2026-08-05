@@ -14,7 +14,6 @@ export class IotSimulatorService {
     const client = this.redisService.getClient();
 
     this.motors.forEach((motorId) => {
-      // Generate mock sensor data
       const data = {
         motorId,
         timestamp: new Date().toISOString(),
@@ -29,7 +28,6 @@ export class IotSimulatorService {
         voltageT: motorId.includes('HV') ? this.randomFloat(11000, 11500) : this.randomFloat(3300, 3500),
       };
 
-      // Store the latest state
       client.set(`machine_status:${motorId}`, JSON.stringify(data));
       // Push to a list for batch inserting into Postgres later
       client.lpush('sensor_data_buffer', JSON.stringify(data));
