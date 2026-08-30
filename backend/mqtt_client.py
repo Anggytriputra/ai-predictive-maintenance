@@ -115,7 +115,7 @@ class MQTTClient:
         topic = f"plant/{motor_id}/alert"
         payload = json.dumps(alert)
         self.client.publish(topic, payload, qos=1)
-        logger.warning(f"🚨 [AI ALERT] {motor_id}: {alert.get('severity', 'UNKNOWN')}")
+        logger.warning(f"🚨 [AI ALERT] {motor_id}: {alert.get('riskLevel', 'UNKNOWN')}")
 
     @property
     def is_connected(self) -> bool:
