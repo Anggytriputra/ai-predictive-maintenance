@@ -1,9 +1,10 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15
-    container_name: predictive_postgres
+  # 1. TimescaleDB (PostgreSQL + time-series extension)
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: predictive_timescaledb
     restart: always
     environment:
       POSTGRES_USER: admin
@@ -14,12 +15,20 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  redis:
-    image: redis:7
-    container_name: predictive_redis
+  # 2. Mosquitto MQTT Broker (replaces Redis)
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: predictive_mosquitto
     restart: always
     ports:
-      - "6379:6379"
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
 
 volumes:
   pgdata:
+  mosquitto_data:
+  mosquitto_log:

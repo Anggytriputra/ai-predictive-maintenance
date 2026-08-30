@@ -1,5 +1,13 @@
-node_modules
-# Keep environment variables out of version control
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
 .env
-
-/generated/prisma
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+*.model
+*.joblib

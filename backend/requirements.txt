@@ -1,0 +1,27 @@
+# Web Framework
+fastapi==0.115.12
+uvicorn[standard]==0.34.3
+
+# MQTT Client
+paho-mqtt==2.1.0
+
+# Database (TimescaleDB / PostgreSQL)
+sqlalchemy==2.0.41
+psycopg2-binary==2.9.10
+alembic==1.16.1
+
+# WebSocket (Socket.io - compatible with frontend socket.io-client)
+python-socketio==5.12.1
+
+# ML / Data Science
+scikit-learn==1.6.1
+pandas==2.2.3
+numpy==2.2.6
+joblib==1.5.1
+
+# Scheduling (background tasks)
+apscheduler==3.11.0
+
+# Environment
+python-dotenv==1.1.0
+
