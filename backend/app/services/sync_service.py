@@ -11,7 +11,7 @@ import threading
 import uuid
 from datetime import datetime, timezone
 
-from database import SessionLocal, Machine, SensorDataLog
+from app.models.database import SessionLocal, Machine, SensorDataLog
 
 logger = logging.getLogger("db_sync")
 
@@ -124,7 +124,7 @@ class DatabaseSync:
 
 
 # Import Alert here to avoid circular imports
-from database import Alert
+from app.models.database import Alert
 
 # Singleton instance
 db_sync = DatabaseSync()

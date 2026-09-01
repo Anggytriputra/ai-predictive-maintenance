@@ -1,21 +1,18 @@
 """
 AI Predictive Maintenance Backend — FastAPI + MQTT + TimescaleDB + ML
 
-Main entry point that wires together all modules:
+Main entry point that wires together all modules in a layered DDD architecture:
 - FastAPI for REST API
 - MQTT (paho-mqtt) for IoT sensor data ingestion
 - Socket.io (python-socketio AsyncServer) for real-time frontend updates
 - IsolationForest for ML-based anomaly detection
 - TimescaleDB for time-series sensor storage
 - APScheduler for periodic tasks (IoT simulation, DB sync, ML training)
-
-Replaces the entire NestJS backend.
 """
 
 import asyncio
 import logging
 import json
-from datetime import datetime
 from contextlib import asynccontextmanager
 
 import socketio as sio_module
@@ -24,13 +21,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from config import settings
-from database import init_db, SessionLocal, SensorDataLog
-from mqtt_client import mqtt_client
-from iot_simulator import simulate_tick
-from ml_analyzer import ml_analyzer
-from websocket_handler import sio, emit_sensor_update, emit_alert
-from db_sync import db_sync
+from app.core.config import settings
+from app.models.database import init_db
+from app.services.mqtt_service import mqtt_client
+from app.services.simulator_service import simulate_tick
+from app.services.ml_service import ml_analyzer
+from app.gateways.websocket_gateway import sio, emit_sensor_update, emit_alert
+from app.services.sync_service import db_sync
+
+from app.controllers import machines_controller, alerts_controller, ml_controller
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -50,13 +49,6 @@ _loop: asyncio.AbstractEventLoop | None = None
 def on_sensor_data_received(data: dict):
     """
     Central handler for incoming sensor data (from MQTT).
-    This is the main data pipeline:
-
-    1. Receive sensor data from MQTT
-    2. Run ML prediction (anomaly detection)
-    3. If anomaly → publish alert via MQTT + save to DB
-    4. Buffer data for periodic DB sync
-    5. Emit to frontend via Socket.io (async, bridged from sync callback)
     """
     motor_id = data.get("motorId", "unknown")
 
@@ -138,7 +130,6 @@ async def lifespan(app: FastAPI):
     mqtt_client.on_sensor_data(on_sensor_data_received)
 
     # 3. Start scheduler
-    # IoT Simulator: generate sensor data every 2 seconds
     scheduler.add_job(
         simulate_tick,
         "interval",
@@ -147,7 +138,6 @@ async def lifespan(app: FastAPI):
         name="IoT Sensor Simulator",
     )
 
-    # Database Sync: flush buffer to TimescaleDB every 10 seconds
     scheduler.add_job(
         db_sync.flush_to_database,
         "interval",
@@ -156,7 +146,6 @@ async def lifespan(app: FastAPI):
         name="Database Sync",
     )
 
-    # ML Model Retraining: retrain every 2 minutes
     scheduler.add_job(
         retrain_ml_model,
         "interval",
@@ -198,8 +187,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Register Routers (Controllers) ---
+app.include_router(machines_controller.router)
+app.include_router(alerts_controller.router)
+app.include_router(ml_controller.router)
 
-# --- REST API Endpoints ---
 
 @app.get("/")
 def root():
@@ -214,116 +206,5 @@ def root():
     }
 
 
-@app.get("/api/machines")
-def get_machines():
-    """Get list of all monitored machines."""
-    from database import Machine
-    db = SessionLocal()
-    try:
-        machines = db.query(Machine).all()
-        return [
-            {
-                "id": m.id,
-                "name": m.name,
-                "type": m.type,
-                "status": m.status,
-                "createdAt": m.created_at.isoformat() if isinstance(m.created_at, datetime) else str(m.created_at),
-            }
-            for m in machines
-        ]
-    finally:
-        db.close()
-
-
-@app.get("/api/machines/{machine_id}/logs")
-def get_machine_logs(machine_id: str, limit: int = 100):
-    """Get recent sensor data logs for a specific machine."""
-    db = SessionLocal()
-    try:
-        logs = (
-            db.query(SensorDataLog)
-            .filter(SensorDataLog.machine_id == machine_id)
-            .order_by(SensorDataLog.timestamp.desc())
-            .limit(limit)
-            .all()
-        )
-        return [
-            {
-                "id": log.id,
-                "machineId": log.machine_id,
-                "temperature": log.temperature,
-                "vibration": log.vibration,
-                "currentR": log.current_r,
-                "currentS": log.current_s,
-                "currentT": log.current_t,
-                "currentN": log.current_n,
-                "voltageR": log.voltage_r,
-                "voltageS": log.voltage_s,
-                "voltageT": log.voltage_t,
-                "timestamp": log.timestamp.isoformat() if isinstance(log.timestamp, datetime) else str(log.timestamp),
-            }
-            for log in reversed(logs)
-        ]
-    finally:
-        db.close()
-
-
-@app.get("/api/alerts")
-def get_alerts(limit: int = 50):
-    """Get recent AI alerts."""
-    from database import Alert
-    db = SessionLocal()
-    try:
-        alerts = (
-            db.query(Alert)
-            .order_by(Alert.created_at.desc())
-            .limit(limit)
-            .all()
-        )
-        return [
-            {
-                "id": a.id,
-                "machineId": a.machine_id,
-                "message": a.message,
-                "severity": a.severity,
-                "aiPrediction": a.ai_prediction,
-                "createdAt": a.created_at.isoformat() if isinstance(a.created_at, datetime) else str(a.created_at),
-                "isResolved": a.is_resolved,
-            }
-            for a in alerts
-        ]
-    finally:
-        db.close()
-
-
-@app.get("/api/ml/status")
-def get_ml_status():
-    """Get current ML model status."""
-    return {
-        "is_trained": ml_analyzer.is_trained,
-        "training_samples": len(ml_analyzer.training_data),
-        "min_samples_required": ml_analyzer.min_samples,
-        "contamination": ml_analyzer.contamination,
-        "ready_percentage": min(
-            100,
-            round(len(ml_analyzer.training_data) / ml_analyzer.min_samples * 100, 1),
-        ),
-    }
-
-
 # --- Mount Socket.io on the ASGI app ---
-
-# Wrap FastAPI (ASGI) with Socket.io
 socket_app = sio_module.ASGIApp(sio, other_asgi_app=app)
-
-
-# --- Entry Point ---
-
-if __name__ == "__main__":
-    uvicorn.run(
-        "main:socket_app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=False,
-        log_level="info",
-    )

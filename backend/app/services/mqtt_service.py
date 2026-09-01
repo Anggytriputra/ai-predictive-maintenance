@@ -12,7 +12,7 @@ import logging
 from typing import Callable, Optional
 
 import paho.mqtt.client as mqtt
-from config import settings
+from app.core.config import settings
 
 logger = logging.getLogger("mqtt")
 

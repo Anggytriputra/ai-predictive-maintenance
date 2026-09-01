@@ -14,7 +14,7 @@ from sqlalchemy import (
     ForeignKey, Index, create_engine, text
 )
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker, Session, Mapped, mapped_column
-from config import settings
+from app.core.config import settings
 
 logger = logging.getLogger("database")
 

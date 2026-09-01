@@ -9,8 +9,8 @@ import logging
 import random
 from datetime import datetime, timezone
 
-from mqtt_client import mqtt_client
-from config import settings
+from app.services.mqtt_service import mqtt_client
+from app.core.config import settings
 
 logger = logging.getLogger("iot_simulator")
 
