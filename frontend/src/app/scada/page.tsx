@@ -210,7 +210,7 @@ function ReactorSymbol({ stroke, level }: { stroke: string; level: number }) {
 // ════════════════════════════════════════════════════════════════════════════
 
 async function sendMotorCommand(motorId: string, action: 'start' | 'stop') {
-  await fetch(`http://localhost:3000/api/control/motors/${motorId}`, {
+  await fetch(`${SOCKET_URL}/api/control/motors/${motorId}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action }),
