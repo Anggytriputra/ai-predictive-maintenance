@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import Link from 'next/link';
 import { Activity, Zap, ThermometerSun, AlertTriangle, CheckCircle2, Settings } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -65,6 +66,11 @@ export default function Dashboard() {
           <p className="text-gray-400 mt-1">Real-time Industrial Motor Monitoring System</p>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/pid"
+            className="flex items-center gap-2 text-sm text-indigo-300 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 px-4 py-1.5 rounded-xl transition-all duration-200">
+            <Activity className="w-4 h-4" />
+            P&amp;ID View
+          </Link>
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>

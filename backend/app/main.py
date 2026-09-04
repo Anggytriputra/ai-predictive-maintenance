@@ -29,7 +29,7 @@ from app.services.ml_service import ml_analyzer
 from app.gateways.websocket_gateway import sio, emit_sensor_update, emit_alert
 from app.services.sync_service import db_sync
 
-from app.controllers import machines_controller, alerts_controller, ml_controller
+from app.controllers import machines_controller, alerts_controller, ml_controller, control_controller
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -191,6 +191,7 @@ app.add_middleware(
 app.include_router(machines_controller.router)
 app.include_router(alerts_controller.router)
 app.include_router(ml_controller.router)
+app.include_router(control_controller.router)
 
 
 @app.get("/")
