@@ -20,7 +20,7 @@ interface SensorData {
   voltageT: number;
 }
 
-const SOCKET_URL = typeof window !== 'undefined' ? `http://${window.location.hostname}:4000` : 'http://localhost:4000';
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000';
 
 export default function Dashboard() {
   const [socket, setSocket] = useState<Socket | null>(null);
