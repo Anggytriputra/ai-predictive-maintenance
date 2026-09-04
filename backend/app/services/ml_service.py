@@ -19,7 +19,6 @@ from app.core.config import settings
 
 logger = logging.getLogger("ml_analyzer")
 
-
 class MLAnalyzer:
     """
     Machine Learning-based anomaly detector for industrial motor sensors.

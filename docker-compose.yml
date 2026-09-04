@@ -28,6 +28,33 @@ services:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
 
+  # 3. Backend (FastAPI + Python ML)
+  backend:
+    build:
+      context: ./backend
+    container_name: predictive_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://admin:adminpassword@timescaledb:5432/predictive_maintenance
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_BROKER_PORT=1883
+    ports:
+      - "3000:3000"
+    depends_on:
+      - timescaledb
+      - mosquitto
+
+  # 4. Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+    container_name: predictive_frontend
+    restart: always
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
+
 volumes:
   pgdata:
   mosquitto_data:
