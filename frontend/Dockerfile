@@ -8,6 +8,8 @@ RUN npm ci
 
 # Salin kode sumber dan build Next.js
 COPY . .
+ARG NEXT_PUBLIC_SOCKET_URL
+ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
 RUN npm run build
 
 # Mode production runner

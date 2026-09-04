@@ -25,6 +25,13 @@ jobs:
             fi
             cd ai-predictive-maintenance
             git pull origin main
+            
+            # Buat file .env secara otomatis dari GitHub Secrets
+            echo "DATABASE_URL=postgresql://admin:adminpassword@timescaledb:5432/predictive_maintenance" > .env
+            echo "MQTT_BROKER_HOST=mosquitto" >> .env
+            echo "MQTT_BROKER_PORT=1883" >> .env
+            echo "NEXT_PUBLIC_SOCKET_URL=${{ secrets.NEXT_PUBLIC_SOCKET_URL }}" >> .env
+            
             sudo docker compose up -d --build
 
       - name: Send Email Notification on Failure
