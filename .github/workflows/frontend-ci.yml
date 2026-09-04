@@ -1,0 +1,36 @@
+name: Frontend CI (Satpam Pengecek Kode FE)
+
+# Bekerja setiap ada 'git push' atau PR ke branch 'main'
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+
+jobs:
+  build-and-test:
+    name: Mengecek Frontend (Next.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Kode
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Test Build Frontend
+        working-directory: ./frontend
+        run: npm run build

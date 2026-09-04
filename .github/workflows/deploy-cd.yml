@@ -1,0 +1,39 @@
+name: Deploy CD (Robot Pekerja AWS)
+
+# Robot ini hanya bekerja jika ada kode yang masuk ke branch 'main'
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy ke AWS EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Eksekusi Perintah di AWS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USERNAME }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          # Ini adalah perintah yang akan diketikkan robot di terminal AWS Anda
+          script: |
+            cd ~/ai-predictive-maintenance
+            git pull origin main
+            sudo docker compose up -d --build
+
+      - name: Send Email Notification on Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "🚨 [URGENT] Deployment Failed for ai-predictive-maintenance"
+          to: anggytriasaputra@gmail.com
+          cc: baru9910@gmail.com
+          from: GitHub Actions AWS Bot
+          body: "Hello Team,\n\nThe continuous deployment pipeline for ai-predictive-maintenance has FAILED on the production AWS server.\nPlease check the GitHub Actions logs immediately to identify and resolve the issue.\n\nBest regards,\nGitHub Actions Bot"

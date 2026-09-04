@@ -550,9 +550,9 @@ export default function PIDPage() {
       <header className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-white/[0.07] bg-[#0a0d18]/90 backdrop-blur-xl z-20">
         <div>
           <h1 className="text-lg font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-            P&amp;ID Live View
+            SCADA Live View
           </h1>
-          <p className="text-[11px] text-gray-500">Piping & Instrumentation Diagram — ISA 5.1 Standard Symbols</p>
+          <p className="text-[11px] text-gray-500">Supervisory Control and Data Acquisition — Process Overview</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -572,7 +572,7 @@ export default function PIDPage() {
             </span>
           )}
           <div className="w-px h-5 bg-white/10 mx-1"/>
-          <Link href="/" className="text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition-all">
+          <Link href="/dashboard" className="text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition-all">
             ← Dashboard
           </Link>
         </div>
@@ -606,7 +606,7 @@ export default function PIDPage() {
 
         {/* Legend */}
         <div className="absolute bottom-6 left-6 bg-[#0d1117]/90 border border-white/10 rounded-2xl px-5 py-4 backdrop-blur-xl shadow-2xl z-10 text-xs">
-          <p className="font-bold text-gray-400 uppercase tracking-widest mb-3 text-[10px]">ISA P&ID Legend</p>
+          <p className="font-bold text-gray-400 uppercase tracking-widest mb-3 text-[10px]">ISA SCADA Legend</p>
           <div className="space-y-2.5">
             {[
               { color: '#6366f1', label: 'Motor Drive Shaft' },
