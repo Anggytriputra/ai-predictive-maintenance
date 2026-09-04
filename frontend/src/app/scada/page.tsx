@@ -20,7 +20,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import Link from 'next/link';
 
-const SOCKET_URL = 'http://localhost:3000';
+const SOCKET_URL = typeof window !== 'undefined' ? `http://${window.location.hostname}:4000` : 'http://localhost:4000';
 
 interface SensorData {
   motorId: string;
