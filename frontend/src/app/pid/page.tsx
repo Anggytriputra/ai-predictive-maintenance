@@ -409,10 +409,14 @@ function ReactorNode({ data }: { data: { label: string; pressure?: number; level
   const stroke   = '#a855f7';
   return (
     <div className="relative flex flex-col items-center" style={{ filter: 'drop-shadow(0 0 16px #a855f740)' }}>
+      {/* Feed inlets (left side - two motors feeding in) */}
       <Handle type="target" position={Position.Left} id="in"
         style={{ top: '22%', left: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }}/>
+      <Handle type="target" position={Position.Left} id="in2"
+        style={{ top: '55%', left: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }}/>
+      {/* Discharge outlet (right side - Motor-MV-01 discharge pump) */}
       <Handle type="source" position={Position.Right} id="out"
-        style={{ top: '80%', right: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }}/>
+        style={{ top: '80%', right: -6, width: 10, height: 10, background: '#f97316', border: '2px solid #f97316cc' }}/>
 
       {/* ISA Reactor Symbol */}
       <div className="w-24 h-48">
@@ -448,15 +452,22 @@ const nodeTypes = { motorNode: MotorNode, pumpNode: PumpNode, valveNode: ValveNo
 
 // ─── Initial layout ───────────────────────────────────────────────────────────
 const initialNodes: Node[] = [
-  { id: 'motor-1', type: 'motorNode',   position: { x: 40,  y: 80  }, data: { label: 'Motor-HV-01' } },
-  { id: 'pump-1',  type: 'pumpNode',    position: { x: 260, y: 98  }, data: { label: 'P-101', running: true } },
-  { id: 'valve-1', type: 'valveNode',   position: { x: 430, y: 82  }, data: { label: 'FCV-101', open: true } },
+  // === FEED SIDE (Input to Reactor) ===
+  { id: 'motor-1', type: 'motorNode',   position: { x: 40,  y: 60  }, data: { label: 'Motor-HV-01' } },
+  { id: 'pump-1',  type: 'pumpNode',    position: { x: 270, y: 80  }, data: { label: 'P-101', running: true } },
+  { id: 'valve-1', type: 'valveNode',   position: { x: 440, y: 62  }, data: { label: 'FCV-101', open: true } },
 
-  { id: 'motor-2', type: 'motorNode',   position: { x: 40,  y: 360 }, data: { label: 'Motor-HV-02' } },
-  { id: 'pump-2',  type: 'pumpNode',    position: { x: 260, y: 378 }, data: { label: 'P-102', running: true } },
-  { id: 'valve-2', type: 'valveNode',   position: { x: 430, y: 362 }, data: { label: 'FCV-102', open: true } },
+  { id: 'motor-2', type: 'motorNode',   position: { x: 40,  y: 370 }, data: { label: 'Motor-HV-02' } },
+  { id: 'pump-2',  type: 'pumpNode',    position: { x: 270, y: 390 }, data: { label: 'P-102', running: true } },
+  { id: 'valve-2', type: 'valveNode',   position: { x: 440, y: 372 }, data: { label: 'FCV-102', open: true } },
 
-  { id: 'reactor', type: 'reactorNode', position: { x: 640, y: 100 }, data: { label: 'R-101', pressure: 2.4, level: 68 } },
+  // === REACTOR ===
+  { id: 'reactor', type: 'reactorNode', position: { x: 650, y: 100 }, data: { label: 'R-101', pressure: 2.4, level: 68 } },
+
+  // === DISCHARGE SIDE (Output from Reactor — Motor-MV-01) ===
+  { id: 'valve-3', type: 'valveNode',   position: { x: 880, y: 430 }, data: { label: 'FCV-103', open: true } },
+  { id: 'pump-3',  type: 'pumpNode',    position: { x: 1060, y: 448 }, data: { label: 'P-103', running: true } },
+  { id: 'motor-3', type: 'motorNode',   position: { x: 1240, y: 430 }, data: { label: 'Motor-MV-01' } },
 ];
 
 const edgeStyle = (color: string): Partial<Edge> => ({
@@ -467,14 +478,20 @@ const edgeStyle = (color: string): Partial<Edge> => ({
 });
 
 const initialEdges: Edge[] = [
-  // Pipeline 1: Motor-HV-01 → Pump → Valve → Reactor
-  { id: 'e1', source: 'motor-1', target: 'pump-1',  sourceHandle: 'out', targetHandle: 'in', data: { motorId: 'Motor-HV-01' }, ...edgeStyle('#6366f1') },
-  { id: 'e2', source: 'pump-1',  target: 'valve-1', sourceHandle: 'out', targetHandle: 'in', data: { motorId: 'Motor-HV-01' }, ...edgeStyle('#06b6d4') },
-  { id: 'e3', source: 'valve-1', target: 'reactor', sourceHandle: 'out', targetHandle: 'in', data: { motorId: 'Motor-HV-01' }, ...edgeStyle('#f59e0b') },
-  // Pipeline 2: Motor-HV-02 → Pump → Valve → Reactor
-  { id: 'e4', source: 'motor-2', target: 'pump-2',  sourceHandle: 'out', targetHandle: 'in', data: { motorId: 'Motor-HV-02' }, ...edgeStyle('#6366f1') },
-  { id: 'e5', source: 'pump-2',  target: 'valve-2', sourceHandle: 'out', targetHandle: 'in', data: { motorId: 'Motor-HV-02' }, ...edgeStyle('#06b6d4') },
-  { id: 'e6', source: 'valve-2', target: 'reactor', sourceHandle: 'out', targetHandle: 'in', data: { motorId: 'Motor-HV-02' }, ...edgeStyle('#f59e0b') },
+  // === Pipeline 1: Motor-HV-01 → P-101 → FCV-101 → Reactor (FEED) ===
+  { id: 'e1', source: 'motor-1', target: 'pump-1',  sourceHandle: 'out', targetHandle: 'in',  data: { motorId: 'Motor-HV-01' }, ...edgeStyle('#6366f1') },
+  { id: 'e2', source: 'pump-1',  target: 'valve-1', sourceHandle: 'out', targetHandle: 'in',  data: { motorId: 'Motor-HV-01' }, ...edgeStyle('#06b6d4') },
+  { id: 'e3', source: 'valve-1', target: 'reactor', sourceHandle: 'out', targetHandle: 'in',  data: { motorId: 'Motor-HV-01' }, ...edgeStyle('#f59e0b') },
+
+  // === Pipeline 2: Motor-HV-02 → P-102 → FCV-102 → Reactor (FEED) ===
+  { id: 'e4', source: 'motor-2', target: 'pump-2',  sourceHandle: 'out', targetHandle: 'in',  data: { motorId: 'Motor-HV-02' }, ...edgeStyle('#6366f1') },
+  { id: 'e5', source: 'pump-2',  target: 'valve-2', sourceHandle: 'out', targetHandle: 'in',  data: { motorId: 'Motor-HV-02' }, ...edgeStyle('#06b6d4') },
+  { id: 'e6', source: 'valve-2', target: 'reactor', sourceHandle: 'out', targetHandle: 'in2', data: { motorId: 'Motor-HV-02' }, ...edgeStyle('#f59e0b') },
+
+  // === Pipeline 3: Reactor (DISCHARGE) → FCV-103 → P-103 → Motor-MV-01 ===
+  { id: 'e7', source: 'reactor', target: 'valve-3', sourceHandle: 'out', targetHandle: 'in',  data: { motorId: 'Motor-MV-01' }, ...edgeStyle('#f97316') },
+  { id: 'e8', source: 'valve-3', target: 'pump-3',  sourceHandle: 'out', targetHandle: 'in',  data: { motorId: 'Motor-MV-01' }, ...edgeStyle('#fb923c') },
+  { id: 'e9', source: 'pump-3',  target: 'motor-3', sourceHandle: 'out', targetHandle: 'in',  data: { motorId: 'Motor-MV-01' }, ...edgeStyle('#f97316') },
 ];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
