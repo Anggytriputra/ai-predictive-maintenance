@@ -11,28 +11,28 @@
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS_EC2-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white)
 
-**Sistem monitoring IoT industri secara real-time dengan deteksi anomali berbasis Machine Learning.**  
-Dibangun dengan arsitektur production-grade dan di-deploy otomatis ke AWS EC2 via GitHub Actions CI/CD.
+**A production-grade, real-time IoT monitoring system with Machine Learning-based anomaly detection.**  
+Built with a full-stack architecture and automatically deployed to AWS EC2 via GitHub Actions CI/CD.
 
 </div>
 
 ---
 
-## ✨ Fitur Utama
+## ✨ Key Features
 
-| Fitur | Deskripsi |
-|-------|-----------|
-| 🔴 **Real-Time Telemetry** | Stream data sensor ribuan titik per detik via **WebSocket (Socket.io)** |
-| 🧠 **AI Anomaly Detection** | **IsolationForest (scikit-learn)** — deteksi otomatis anomali tanpa label (unsupervised) |
-| ⚡ **Industrial IoT Messaging** | **Eclipse Mosquitto MQTT** sebagai message broker standar industri |
-| 💾 **Time-Series Database** | **TimescaleDB** (PostgreSQL extension) untuk penyimpanan dan query data sensor historis |
-| 📊 **Dashboard Real-Time** | Grafik live dengan **Recharts**, dark mode premium UI |
-| 🗺️ **SCADA View** | Diagram alur proses industri interaktif berbasis **React Flow** |
-| 🚀 **CI/CD Otomatis** | Deploy ke **AWS EC2** otomatis via **GitHub Actions** setiap push ke `main` |
+| Feature | Description |
+|---------|-------------|
+| 🔴 **Real-Time Telemetry** | Streams thousands of sensor data points per second via **WebSocket (Socket.io)** |
+| 🧠 **AI Anomaly Detection** | **IsolationForest (scikit-learn)** — unsupervised real-time anomaly detection |
+| ⚡ **Industrial IoT Messaging** | **Eclipse Mosquitto MQTT** as the industry-standard message broker |
+| 💾 **Time-Series Database** | **TimescaleDB** (PostgreSQL extension) for efficient storage and querying of historical sensor data |
+| 📊 **Real-Time Dashboard** | Live charts with **Recharts**, premium dark mode UI |
+| 🗺️ **SCADA View** | Interactive industrial P&ID process flow diagram built with **React Flow** |
+| 🚀 **Automated CI/CD** | Auto-deploy to **AWS EC2** via **GitHub Actions** on every push to `main` |
 
 ---
 
-## 🏗️ Arsitektur Sistem
+## 🏗️ System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -55,34 +55,34 @@ Dibangun dengan arsitektur production-grade dan di-deploy otomatis ke AWS EC2 vi
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Stack Teknologi
+### Technology Stack
 
 **Backend:**
 - `FastAPI 0.115` — REST API + ASGI server
-- `python-socketio 5.12` — WebSocket real-time ke frontend
-- `paho-mqtt 2.1` — MQTT client untuk publish/subscribe sensor data
+- `python-socketio 5.12` — Real-time WebSocket to frontend
+- `paho-mqtt 2.1` — MQTT client for sensor data publish/subscribe
 - `scikit-learn 1.6` + `pandas` + `numpy` — IsolationForest ML pipeline
-- `SQLAlchemy 2.0` + `psycopg2` — ORM ke TimescaleDB
-- `APScheduler 3.11` — task scheduler (simulator, DB sync, ML retrain)
+- `SQLAlchemy 2.0` + `psycopg2` — ORM for TimescaleDB
+- `APScheduler 3.11` — Task scheduler (simulator, DB sync, ML retrain)
 
 **Frontend:**
 - `Next.js 16.2` (webpack mode, standalone build)
-- `React Flow (@xyflow/react)` — SCADA P&ID diagram interaktif
-- `Recharts` — grafik sensor real-time
-- `Tailwind CSS v4` — dark mode UI
-- `socket.io-client` — koneksi WebSocket ke backend
-- `Lucide React` — icon set
+- `React Flow (@xyflow/react)` — Interactive SCADA P&ID diagram
+- `Recharts` — Real-time sensor charts
+- `Tailwind CSS v4` — Dark mode premium UI
+- `socket.io-client` — WebSocket connection to backend
+- `Lucide React` — Icon library
 
 **Infrastructure:**
-- `Docker Compose` — orkestrasi semua service
+- `Docker Compose` — Multi-service orchestration
 - `TimescaleDB` — PostgreSQL + time-series extension (port `5433`)
 - `Eclipse Mosquitto` — MQTT broker (port `1883`, WebSocket `9001`)
-- `AWS EC2` — production server
+- `AWS EC2` — Production server
 - `GitHub Actions` — CI/CD pipeline
 
 ---
 
-## 📁 Struktur Project
+## 📁 Project Structure
 
 ```
 ai-predictive-maintenance/
@@ -90,14 +90,14 @@ ai-predictive-maintenance/
 │   └── workflows/
 │       ├── frontend-ci.yml      # CI: lint + build + Docker build test
 │       ├── backend-ci.yml       # CI: Python lint & test
-│       └── deploy-cd.yml        # CD: auto-deploy ke AWS EC2
+│       └── deploy-cd.yml        # CD: auto-deploy to AWS EC2
 │
 ├── backend/
 │   ├── app/
 │   │   ├── controllers/         # REST API endpoints (FastAPI Router)
-│   │   ├── core/config.py       # Konfigurasi dari environment variables
+│   │   ├── core/config.py       # Configuration from environment variables
 │   │   ├── gateways/            # WebSocket gateway (Socket.io)
-│   │   ├── models/              # SQLAlchemy models + DB init
+│   │   ├── models/              # SQLAlchemy models + DB initialization
 │   │   └── services/            # Business logic (MQTT, ML, simulator, sync)
 │   ├── Dockerfile
 │   └── requirements.txt
@@ -105,41 +105,41 @@ ai-predictive-maintenance/
 ├── frontend/
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── dashboard/       # Halaman Dashboard + komponen
-│   │   │   └── scada/           # Halaman SCADA + custom nodes React Flow
-│   │   └── components/          # Komponen shared (Navbar, MotorSymbol)
+│   │   │   ├── dashboard/       # Dashboard page & components
+│   │   │   └── scada/           # SCADA page & custom React Flow nodes
+│   │   └── components/          # Shared components (Navbar, MotorSymbol)
 │   ├── Dockerfile
 │   └── next.config.ts
 │
 ├── mosquitto/
-│   └── mosquitto.conf           # Konfigurasi MQTT broker
+│   └── mosquitto.conf           # MQTT broker configuration
 │
-├── docker-compose.yml           # Production compose (semua service)
+├── docker-compose.yml           # Production compose (all services)
 ├── docker-compose.override.yml  # Local dev override (gitignored)
-└── .env.example                 # Template environment variables
+└── .env.example                 # Environment variables template
 ```
 
 ---
 
-## 🚀 Menjalankan Secara Lokal
+## 🚀 Getting Started (Local Development)
 
-### Prasyarat
+### Prerequisites
 
 - **Node.js** v20+
 - **Python** v3.12+
 - **Docker Desktop**
 
-### 1. Clone & Konfigurasi Environment
+### 1. Clone & Configure Environment
 
 ```bash
 git clone https://github.com/Anggytriputra/ai-predictive-maintenance.git
 cd ai-predictive-maintenance
 
-# Buat file .env dari template
+# Create .env from template
 cp .env.example .env
 ```
 
-Edit `.env` jika perlu (default sudah siap untuk local):
+Edit `.env` if needed (defaults are ready for local development):
 ```env
 DATABASE_URL=postgresql://admin:adminpassword@timescaledb:5432/predictive_maintenance
 MQTT_BROKER_HOST=mosquitto
@@ -147,13 +147,13 @@ MQTT_BROKER_PORT=1883
 NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
 ```
 
-### 2. Jalankan Semua Service (Docker)
+### 2. Run All Services (Docker)
 
 ```bash
-# Jalankan semua: TimescaleDB, Mosquitto, Backend, Frontend
+# Start all: TimescaleDB, Mosquitto, Backend, Frontend
 docker compose up -d
 
-# Lihat log
+# View logs
 docker compose logs -f
 ```
 
@@ -165,18 +165,19 @@ docker compose logs -f
 | TimescaleDB | `localhost:5433` |
 | MQTT Broker | `localhost:1883` |
 
-### 3. Menjalankan Tanpa Docker (Development)
+### 3. Run Without Docker (Manual Development)
 
 **Backend:**
 ```bash
 cd backend
 python -m venv venv
+
 .\venv\Scripts\activate   # Windows
 source venv/bin/activate  # Mac/Linux
 
 pip install -r requirements.txt
 python run.py
-# → Berjalan di http://localhost:3000
+# → Running at http://localhost:3000
 ```
 
 **Frontend:**
@@ -184,43 +185,43 @@ python run.py
 cd frontend
 npm install
 npm run dev
-# → Berjalan di http://localhost:3001
+# → Running at http://localhost:3001
 ```
 
 ---
 
 ## ☁️ Deployment (AWS EC2)
 
-### Cara Kerja CI/CD
+### How CI/CD Works
 
 ```
-Push ke branch main
+Push to main branch
        │
        ├──► Frontend CI    → npm build + Docker build test
        ├──► Backend CI     → Python lint & test
-       └──► Deploy CD      → SSH ke AWS → git pull → docker compose up --build
+       └──► Deploy CD      → SSH to AWS → git pull → docker compose up --build
 ```
 
-### Setup GitHub Secrets
+### GitHub Secrets Setup
 
-Di repository GitHub → **Settings → Secrets and variables → Actions**, tambahkan:
+Go to your GitHub repository → **Settings → Secrets and variables → Actions**, and add:
 
-| Secret | Nilai |
+| Secret | Value |
 |--------|-------|
-| `AWS_HOST` | IP Public EC2 (contoh: `13.251.127.127`) |
+| `AWS_HOST` | EC2 Public IP (e.g. `13.251.127.127`) |
 | `AWS_USERNAME` | `ubuntu` |
-| `AWS_SSH_KEY` | Isi file `.pem` key EC2 |
-| `NEXT_PUBLIC_SOCKET_URL` | `http://<IP_AWS>:4000` |
-| `EMAIL_USERNAME` | Email untuk notifikasi gagal deploy |
-| `EMAIL_PASSWORD` | App password Gmail |
+| `AWS_SSH_KEY` | Contents of your `.pem` key file |
+| `NEXT_PUBLIC_SOCKET_URL` | `http://<AWS_IP>:4000` |
+| `EMAIL_USERNAME` | Email for failed deploy notifications |
+| `EMAIL_PASSWORD` | Gmail App Password |
 
-### Deploy Manual ke Server
+### Manual Deploy to Server
 
 ```bash
-# SSH ke server
-ssh -i "anggy-saputra-key.pem" ubuntu@<IP_AWS>
+# SSH into server
+ssh -i "anggy-saputra-key.pem" ubuntu@<AWS_IP>
 
-# Build & jalankan ulang semua service
+# Pull latest code and rebuild
 cd ai-predictive-maintenance
 git pull origin main
 sudo docker compose up -d --build
@@ -228,25 +229,25 @@ sudo docker compose up -d --build
 
 ---
 
-## 🧠 Cara Kerja AI / ML
+## 🧠 How the AI/ML Works
 
-1. **Pengumpulan Data** — IoT Simulator menghasilkan data sensor setiap 2 detik untuk 3 motor: `Motor-HV-01`, `Motor-HV-02`, `Motor-MV-01`
-2. **Deteksi Anomali** — `IsolationForest` dilatih secara unsupervised pada data normal
-3. **Klasifikasi Risk** — Setiap data baru diklasifikasikan sebagai `LOW`, `WARNING`, atau `CRITICAL`
-4. **Alert Real-Time** — Alert dikirim via MQTT dan WebSocket ke frontend secara instan
-5. **Retraining Otomatis** — Model dilatih ulang setiap 2 menit dengan data terbaru
+1. **Data Collection** — IoT Simulator generates sensor data every 2 seconds for 3 motors: `Motor-HV-01`, `Motor-HV-02`, `Motor-MV-01`
+2. **Anomaly Detection** — `IsolationForest` is trained unsupervised on normal operating conditions
+3. **Risk Classification** — Each new reading is classified as `LOW`, `WARNING`, or `CRITICAL`
+4. **Real-Time Alerts** — Alerts are sent via MQTT and WebSocket to the frontend instantly
+5. **Auto Retraining** — Model retrains every 2 minutes with the latest accumulated data
 
 ---
 
 ## 📡 Ports & Services
 
-| Port | Service | Keterangan |
-|------|---------|------------|
-| `4001` | Frontend (Next.js) | Dashboard & SCADA |
+| Port | Service | Description |
+|------|---------|-------------|
+| `4001` | Frontend (Next.js) | Dashboard & SCADA View |
 | `4000` | Backend (FastAPI) | REST API + Socket.io |
-| `5433` | TimescaleDB | PostgreSQL time-series |
+| `5433` | TimescaleDB | PostgreSQL time-series DB |
 | `1883` | Mosquitto MQTT | IoT messaging |
-| `9001` | Mosquitto WebSocket | MQTT over WS |
+| `9001` | Mosquitto WebSocket | MQTT over WebSocket |
 
 ---
 
