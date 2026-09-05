@@ -14,6 +14,8 @@
 **A production-grade, real-time IoT monitoring system with Machine Learning-based anomaly detection.**  
 Built with a full-stack architecture and automatically deployed to AWS EC2 via GitHub Actions CI/CD.
 
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-13.251.127.127:4001-4ade80?style=for-the-badge)](http://13.251.127.127:4001)
+
 </div>
 
 ---
