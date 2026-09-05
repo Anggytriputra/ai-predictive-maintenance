@@ -2,11 +2,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Salin file package dan install dependencies
-# Paksa install SEMUA deps (termasuk devDeps seperti tailwindcss, postcss)
-ENV NODE_ENV=development
+# Install SEMUA deps termasuk devDependencies (tailwindcss, postcss, dll)
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --include=dev
 
 # Salin kode sumber dan build Next.js
 COPY . .
