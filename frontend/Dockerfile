@@ -3,6 +3,8 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Salin file package dan install dependencies
+# Paksa install SEMUA deps (termasuk devDeps seperti tailwindcss, postcss)
+ENV NODE_ENV=development
 COPY package.json package-lock.json* ./
 RUN npm ci
 
