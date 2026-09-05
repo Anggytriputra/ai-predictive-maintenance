@@ -27,6 +27,9 @@ yarn-error.log*
 .env
 .env*.local
 
+# Local dev override — jangan push ke production!
+docker-compose.override.yml
+
 # IDEs and AI Assistants
 .vscode/
 .idea/
