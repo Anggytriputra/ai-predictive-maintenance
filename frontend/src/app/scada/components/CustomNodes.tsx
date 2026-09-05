@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { MotorSymbol } from '@/components/MotorSymbol';
+import { MotorSymbol } from '../../../components/MotorSymbol';
 import { PumpSymbol } from './PumpSymbol';
 import { ValveSymbol } from './ValveSymbol';
 import { TankSymbol } from './TankSymbol';

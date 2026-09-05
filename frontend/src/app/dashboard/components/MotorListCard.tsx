@@ -1,5 +1,5 @@
 import { ThermometerSun, Activity, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { MotorSymbol } from '@/components/MotorSymbol';
+import { MotorSymbol } from '../../../components/MotorSymbol';
 
 interface SensorData {
   motorId: string;
