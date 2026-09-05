@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import dynamic from "next/dynamic";
-
-// Navbar pakai framer-motion (useContext) — disable SSR agar tidak crash saat prerender error page
-const Navbar = dynamic(() => import("../components/Navbar").then(m => ({ default: m.Navbar })), { ssr: false });
+import { Navbar } from "../components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
