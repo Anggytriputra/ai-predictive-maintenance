@@ -31,6 +31,10 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Test Build Frontend
+      - name: Test Build Frontend (Node langsung)
         working-directory: ./frontend
         run: npm run build
+
+      # Test Docker build — meniru environment production AWS yang sebenarnya
+      - name: Test Docker Build Frontend
+        run: docker build --no-cache -t frontend-test ./frontend
