@@ -25,3 +25,5 @@ apscheduler==3.11.0
 # Environment
 python-dotenv==1.1.0
 
+# OPC-UA Protocol (industrial standard - connect to Siemens, ABB, Kepware, etc.)
+asyncua==1.1.5

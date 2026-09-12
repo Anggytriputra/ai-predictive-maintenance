@@ -8,6 +8,10 @@ Main entry point that wires together all modules in a layered DDD architecture:
 - IsolationForest for ML-based anomaly detection
 - TimescaleDB for time-series sensor storage
 - APScheduler for periodic tasks (IoT simulation, DB sync, ML training)
+
+DATA SOURCE MODE (controlled by DATA_SOURCE env var):
+  "simulator" (default) → Physics-based IoT simulator generates data locally
+  "opcua"               → OPC-UA client connects to PLC/SCADA or demo server
 """
 
 import asyncio
@@ -48,7 +52,7 @@ _loop: asyncio.AbstractEventLoop | None = None
 
 def on_sensor_data_received(data: dict):
     """
-    Central handler for incoming sensor data (from MQTT).
+    Central handler for incoming sensor data (from MQTT or OPC-UA).
     """
     motor_id = data.get("motorId", "unknown")
 
@@ -118,26 +122,25 @@ async def lifespan(app: FastAPI):
     # === STARTUP ===
     logger.info("=" * 60)
     logger.info("🚀 AI Predictive Maintenance Backend (Python/FastAPI)")
+    logger.info(f"   Data Source : {settings.DATA_SOURCE.upper()}")
     logger.info("=" * 60)
 
     # 1. Initialize database
-    logger.info("📦 Initializing database...")
+    logger.info("🗄 Initializing database...")
     init_db()
 
     # 2. Connect MQTT
-    logger.info("🔌 Connecting to MQTT broker...")
+    logger.info("📡 Connecting to MQTT broker...")
     mqtt_client.connect()
     mqtt_client.on_sensor_data(on_sensor_data_received)
 
-    # 3. Start scheduler
-    scheduler.add_job(
-        simulate_tick,
-        "interval",
-        seconds=settings.SIMULATOR_INTERVAL,
-        id="iot_simulator",
-        name="IoT Sensor Simulator",
-    )
+    # 3. Start data source
+    if settings.DATA_SOURCE == "opcua":
+        await _start_opcua_mode()
+    else:
+        _start_simulator_mode()
 
+    # 4. Shared scheduler jobs (DB sync + ML retrain)
     scheduler.add_job(
         db_sync.flush_to_database,
         "interval",
@@ -164,17 +167,67 @@ async def lifespan(app: FastAPI):
     # === SHUTDOWN ===
     logger.info("Shutting down services...")
     scheduler.shutdown()
+
+    if settings.DATA_SOURCE == "opcua":
+        from app.services.opcua_service import opcua_client
+        await opcua_client.disconnect()
+
     mqtt_client.disconnect()
     _loop = None
     logger.info("👋 Goodbye!")
+
+
+def _start_simulator_mode():
+    """Start the physics-based IoT simulator (offline mode)."""
+    logger.info("🔬 Starting IoT Simulator (physics-based degradation)...")
+    scheduler.add_job(
+        simulate_tick,
+        "interval",
+        seconds=settings.SIMULATOR_INTERVAL,
+        id="iot_simulator",
+        name="IoT Sensor Simulator",
+    )
+    logger.info(
+        f"   Simulating {len(settings.MOTORS)} motors every "
+        f"{settings.SIMULATOR_INTERVAL}s"
+    )
+
+
+async def _start_opcua_mode():
+    """Start OPC-UA client and connect to PLC/SCADA server."""
+    from app.services.opcua_service import opcua_client
+
+    logger.info(f"🔷 Starting OPC-UA Client → {settings.OPCUA_ENDPOINT}")
+
+    # Register the same data callback (OPC-UA data flows through same pipeline)
+    opcua_client.on_sensor_data(on_sensor_data_received)
+
+    success = await opcua_client.connect()
+    if success:
+        await opcua_client.subscribe_all_motors()
+        # Start auto-reconnect monitor
+        opcua_client.start_reconnect_monitor(_loop)
+        logger.info("   OPC-UA subscription active — data flowing to pipeline")
+    else:
+        logger.warning(
+            "   OPC-UA connection failed! Falling back to simulator mode."
+        )
+        logger.warning(
+            f"   Check that the OPC-UA server is running at: {settings.OPCUA_ENDPOINT}"
+        )
+        _start_simulator_mode()
 
 
 # --- FastAPI App ---
 
 app = FastAPI(
     title="AI Predictive Maintenance API",
-    description="Real-time IoT monitoring with ML-based anomaly detection",
-    version="2.0.0",
+    description=(
+        "Real-time IoT monitoring with ML-based anomaly detection. "
+        "Supports dual data source: physics-based simulator OR OPC-UA "
+        "connection to real PLC/SCADA (Siemens, ABB, Kepware, etc.)"
+    ),
+    version="3.0.0",
     lifespan=lifespan,
 )
 
@@ -197,13 +250,26 @@ app.include_router(control_controller.router)
 @app.get("/")
 def root():
     """Health check endpoint."""
+    opcua_info = {}
+    if settings.DATA_SOURCE == "opcua":
+        try:
+            from app.services.opcua_service import opcua_client
+            opcua_info = {
+                "opcua_connected": opcua_client.is_connected,
+                "opcua_endpoint": settings.OPCUA_ENDPOINT,
+            }
+        except Exception:
+            opcua_info = {"opcua_connected": False}
+
     return {
         "service": "AI Predictive Maintenance",
-        "version": "2.0.0",
+        "version": "3.0.0",
         "stack": "FastAPI + MQTT + TimescaleDB + IsolationForest",
+        "data_source": settings.DATA_SOURCE,
         "mqtt_connected": mqtt_client.is_connected,
         "ml_trained": ml_analyzer.is_trained,
         "ml_samples": len(ml_analyzer.training_data),
+        **opcua_info,
     }
 
 

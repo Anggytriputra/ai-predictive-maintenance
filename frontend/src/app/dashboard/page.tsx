@@ -49,7 +49,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-white p-6 font-sans selection:bg-indigo-500/30">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sidebar / Motor List */}
         <div className="lg:col-span-1 space-y-4">
           <h2 className="text-lg font-semibold text-gray-200 mb-4 flex items-center gap-2">
             <Zap className="w-5 h-5 text-indigo-400" /> Active Motors

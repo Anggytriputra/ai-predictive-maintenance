@@ -15,7 +15,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  # 2. Mosquitto MQTT Broker (replaces Redis)
+  # 2. Mosquitto MQTT Broker
   mosquitto:
     image: eclipse-mosquitto:2
     container_name: predictive_mosquitto
@@ -28,10 +28,23 @@ services:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
 
-  # 3. Backend (FastAPI + Python ML)
+  # 3. OPC-UA Demo Server — Virtual PLC/SCADA
+  #    Menggunakan Dockerfile terpisah yang hanya install asyncua (ringan)
+  #    Tidak perlu install numpy, scikit-learn, dll seperti backend
+  opcua-server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.opcua    # <-- Dockerfile khusus, jauh lebih ringan
+    container_name: predictive_opcua_server
+    restart: always
+    ports:
+      - "4840:4840"   # OPC-UA default port (UA TCP Binary)
+
+  # 4. Backend (FastAPI + Python ML)
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile          # <-- Dockerfile backend penuh
     container_name: predictive_backend
     restart: always
     env_file:
@@ -41,8 +54,9 @@ services:
     depends_on:
       - timescaledb
       - mosquitto
+      - opcua-server
 
-  # 4. Frontend (Next.js)
+  # 5. Frontend (Next.js)
   frontend:
     build:
       context: ./frontend
