@@ -1,11 +1,33 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Activity } from 'lucide-react';
+import { LayoutDashboard, Activity, Cpu, Radio } from 'lucide-react';
+
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000';
+
+type DataSource = 'simulator' | 'opcua' | 'loading';
 
 export function Navbar() {
   const pathname = usePathname();
+  const [dataSource, setDataSource] = useState<DataSource>('loading');
+
+  // Fetch data source mode from backend health check
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch(`${SOCKET_URL}/`);
+        const json = await res.json();
+        setDataSource(json.data_source === 'opcua' ? 'opcua' : 'simulator');
+      } catch {
+        setDataSource('simulator');
+      }
+    };
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const TABS = [
     { id: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -21,7 +43,30 @@ export function Navbar() {
         <p className="text-xs text-gray-500 mt-0.5">Real-time Industrial Motor Monitoring System</p>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-4">
+
+        {/* Data Source Badge */}
+        {dataSource !== 'loading' && (
+          <div
+            className={[
+              "flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold tracking-wide",
+              dataSource === 'opcua'
+                ? "bg-blue-500/10 border-blue-500/30 text-blue-300"
+                : "bg-violet-500/10 border-violet-500/30 text-violet-300"
+            ].join(' ')}
+            title={
+              dataSource === 'opcua'
+                ? "Connected via OPC-UA protocol (industrial standard)"
+                : "Physics-based IoT simulation (offline mode)"
+            }
+          >
+            {dataSource === 'opcua'
+              ? <><Radio className="w-3.5 h-3.5" /> OPC-UA LIVE</>
+              : <><Cpu className="w-3.5 h-3.5" /> SIMULATOR</>
+            }
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex items-center bg-black/40 border border-white/10 rounded-2xl p-1.5 shadow-inner">
           {TABS.map((tab) => {

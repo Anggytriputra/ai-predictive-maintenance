@@ -1,21 +1,29 @@
 # Gunakan image Python 3.12 versi ringan
 FROM python:3.12-slim
 
-# Set direktori kerja di dalam container
 WORKDIR /app
 
-# Install dependencies sistem yang mungkin dibutuhkan
-RUN apt-get update && apt-get install -y gcc libpq-dev && rm -rf /var/lib/apt/lists/*
+# Install dependencies sistem
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Salin requirements file dan install
+# Salin requirements file terlebih dahulu (layer ini di-cache oleh Docker)
+# Layer ini hanya rebuild ulang jika requirements.txt berubah
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+# Install Python packages menggunakan mirror PyPI Indonesia (Cendana/Badan Siber)
+# Jauh lebih cepat daripada download langsung dari files.pythonhosted.org
+RUN pip install \
+    --index-url https://pypi.org/simple/ \
+    --extra-index-url https://pypi.python.org/simple/ \
+    --timeout 300 \
+    --retries 5 \
+    -r requirements.txt
 
 # Salin seluruh kode backend
 COPY . .
 
-# Expose port untuk FastAPI
 EXPOSE 3000
 
-# Jalankan server
 CMD ["python", "run.py"]
