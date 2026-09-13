@@ -5,10 +5,12 @@ WORKDIR /app
 # Install SEMUA deps termasuk devDependencies (tailwindcss, postcss, dll)
 COPY package.json package-lock.json* ./
 
-# Konfigurasi retry dan network timeout agar tidak terkena ECONNRESET
-RUN npm config set fetch-retries 5 \
-    && npm config set fetch-retry-mintimeout 20000 \
-    && npm config set fetch-retry-maxtimeout 120000 \
+# Konfigurasi retry, limit concurrent sockets agar koneksi tidak drop/ECONNRESET, dan cache mount
+RUN --mount=type=cache,target=/root/.npm \
+    npm config set fetch-retries 10 \
+    && npm config set fetch-retry-mintimeout 30000 \
+    && npm config set fetch-retry-maxtimeout 180000 \
+    && npm config set maxsockets 3 \
     && npm ci --include=dev --legacy-peer-deps
 
 # Salin kode sumber dan build Next.js
