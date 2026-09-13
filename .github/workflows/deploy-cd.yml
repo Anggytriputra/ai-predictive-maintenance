@@ -1,6 +1,5 @@
-name: Deploy CD (Robot Pekerja AWS)
+name: Production Deployment (AWS EC2)
 
-# Robot ini hanya bekerja jika ada kode yang masuk ke branch 'main'
 on:
   push:
     branches:
@@ -8,17 +7,16 @@ on:
 
 jobs:
   deploy:
-    name: Deploy ke AWS EC2
+    name: Deploy to AWS EC2 Production
     runs-on: ubuntu-latest
 
     steps:
-      - name: Eksekusi Perintah di AWS via SSH
+      - name: Execute Remote Deployment via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.AWS_HOST }}
           username: ${{ secrets.AWS_USERNAME }}
           key: ${{ secrets.AWS_SSH_KEY }}
-          # Ini adalah perintah yang akan diketikkan robot di terminal AWS Anda
           script: |
             if [ ! -d "ai-predictive-maintenance" ]; then
               git clone https://github.com/Anggytriputra/ai-predictive-maintenance.git
@@ -26,7 +24,7 @@ jobs:
             cd ai-predictive-maintenance
             git pull origin main
             
-            # Buat file .env secara otomatis dari GitHub Secrets
+            # Configure environment variables from GitHub Secrets
             echo "DATABASE_URL=postgresql://admin:adminpassword@timescaledb:5432/predictive_maintenance" > .env
             echo "MQTT_BROKER_HOST=mosquitto" >> .env
             echo "MQTT_BROKER_PORT=1883" >> .env
@@ -42,8 +40,8 @@ jobs:
           server_port: 465
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "🚨 [URGENT] Deployment Failed for ai-predictive-maintenance"
+          subject: "🚨 [URGENT] Deployment Failed: ai-predictive-maintenance"
           to: anggytriasaputra@gmail.com
           cc: baru9910@gmail.com
           from: GitHub Actions AWS Bot
-          body: "Hello Team,\n\nThe continuous deployment pipeline for ai-predictive-maintenance has FAILED on the production AWS server.\nPlease check the GitHub Actions logs immediately to identify and resolve the issue.\n\nBest regards,\nGitHub Actions Bot"
+          body: "Hello Team,\n\nThe continuous deployment pipeline for ai-predictive-maintenance has FAILED on the production AWS server.\nPlease check the GitHub Actions logs immediately to identify and resolve the issue.\n\nBest regards,\nGitHub Actions Automated Deployer"

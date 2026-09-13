@@ -2,10 +2,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install SEMUA deps termasuk devDependencies (tailwindcss, postcss, dll)
+# Copy dependency definitions
 COPY package.json package-lock.json* ./
 
-# Konfigurasi retry, limit concurrent sockets agar koneksi tidak drop/ECONNRESET, dan cache mount
+# Configure robust network timeouts, socket limits, and BuildKit cache mount
 RUN --mount=type=cache,target=/root/.npm \
     npm config set fetch-retries 10 \
     && npm config set fetch-retry-mintimeout 30000 \
@@ -13,19 +13,19 @@ RUN --mount=type=cache,target=/root/.npm \
     && npm config set maxsockets 3 \
     && npm ci --include=dev --legacy-peer-deps
 
-# Salin kode sumber dan build Next.js
+# Copy source code and build standalone Next.js production bundle
 COPY . .
 ARG NEXT_PUBLIC_SOCKET_URL
 ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
 RUN npm run build
 
-# Mode production runner
+# Production runtime stage
 FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Salin hasil build dari tahap builder
+# Copy compiled standalone artifacts
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
@@ -34,5 +34,5 @@ EXPOSE 3001
 ENV PORT=3001
 ENV HOSTNAME=0.0.0.0
 
-# Jalankan standalone server dari Next.js
+# Start standalone Next.js server
 CMD ["node", "server.js"]

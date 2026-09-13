@@ -1,6 +1,5 @@
-name: Backend CI (Satpam Pengecek Kode BE)
+name: Backend CI Pipeline
 
-# Bekerja setiap ada 'git push' atau PR ke branch 'main'
 on:
   push:
     branches:
@@ -15,14 +14,14 @@ on:
 
 jobs:
   build-and-test:
-    name: Mengecek Backend (Python FastAPI)
+    name: Backend Verification (FastAPI)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Kode
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python Runtime
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -33,7 +32,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Di sini Anda bisa menambahkan script pytest jika sudah ada unit test
-      - name: Test Syntax
+      - name: Verify Python Code Compilation
         working-directory: ./backend
         run: python -m compileall .
