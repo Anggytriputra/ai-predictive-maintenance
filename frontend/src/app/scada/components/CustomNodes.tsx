@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { MotorSymbol } from '../../../components/MotorSymbol';
+import { MotorSymbol } from '@/components/MotorSymbol';
 import { PumpSymbol } from './PumpSymbol';
 import { ValveSymbol } from './ValveSymbol';
 import { TankSymbol } from './TankSymbol';
@@ -151,7 +151,7 @@ export function ReactorNode({ data }: { data: { label: string; pressure?: number
     <div className="relative flex flex-col items-center" style={{ filter: 'drop-shadow(0 0 10px #a855f730)' }}>
       <Handle type="target" position={Position.Left} id="in" style={{ top: '50%', left: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
       <Handle type="source" position={Position.Right} id="out" style={{ top: '50%', right: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
-      <div className="w-24 h-28"><TankSymbol stroke={stroke} pressure={pressure} level={level} /></div>
+      <div className="w-24 h-28"><TankSymbol stroke={stroke} level={level} /></div>
       <span className="text-[10px] font-bold font-mono mt-1 text-purple-400">{data.label}</span>
       <div className="flex gap-2 text-[9px] text-gray-500 font-mono mt-0.5">
         <span>{pressure.toFixed(1)} bar</span>

@@ -1,4 +1,4 @@
-export function TankSymbol({ stroke, level }: { stroke: string; level: number }) {
+export function TankSymbol({ stroke, level, pressure }: { stroke: string; level: number; pressure?: number }) {
   const vesselTop    = 18;
   const vesselBottom = 155;
   const vesselHeight = vesselBottom - vesselTop;
