@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. TimescaleDB (PostgreSQL + time-series extension)
+  # 1. TimescaleDB (PostgreSQL + Time-Series Hypertable Extension)
   timescaledb:
     image: timescale/timescaledb:latest-pg15
     container_name: predictive_timescaledb
@@ -15,7 +15,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  # 2. Mosquitto MQTT Broker
+  # 2. Eclipse Mosquitto MQTT Broker
   mosquitto:
     image: eclipse-mosquitto:2
     container_name: predictive_mosquitto
@@ -28,23 +28,21 @@ services:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
 
-  # 3. OPC-UA Demo Server — Virtual PLC/SCADA
-  #    Menggunakan Dockerfile terpisah yang hanya install asyncua (ringan)
-  #    Tidak perlu install numpy, scikit-learn, dll seperti backend
+  # 3. OPC-UA Demo Server (Virtual Industrial PLC / SCADA Node)
   opcua-server:
     build:
       context: ./backend
-      dockerfile: Dockerfile.opcua    # <-- Dockerfile khusus, jauh lebih ringan
+      dockerfile: Dockerfile.opcua
     container_name: predictive_opcua_server
     restart: always
     ports:
-      - "4840:4840"   # OPC-UA default port (UA TCP Binary)
+      - "4840:4840"
 
-  # 4. Backend (FastAPI + Python ML)
+  # 4. Backend Service (FastAPI + Machine Learning + Socket.io)
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile          # <-- Dockerfile backend penuh
+      dockerfile: Dockerfile
     container_name: predictive_backend
     restart: always
     env_file:
@@ -56,7 +54,7 @@ services:
       - mosquitto
       - opcua-server
 
-  # 5. Frontend (Next.js)
+  # 5. Frontend Dashboard (Next.js + React Flow SCADA + Recharts)
   frontend:
     build:
       context: ./frontend

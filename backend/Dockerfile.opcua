@@ -1,23 +1,21 @@
-# Dockerfile khusus OPC-UA Demo Server
-# Hanya install asyncua (jauh lebih ringan dari backend penuh)
+# Lightweight container dedicated to OPC-UA Demo Server
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# asyncua butuh gcc untuk compile beberapa dependency (cryptography)
+# Install compilation toolchain for cryptographic dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Install asyncua dengan timeout panjang dan retry
-# Jauh lebih ringan dari full requirements.txt (tidak ada numpy/scikit-learn/dll)
+# Install asyncua with timeout and retry resilience
 RUN pip install \
     --index-url https://pypi.org/simple/ \
     --timeout 300 \
     --retries 5 \
     asyncua==1.1.5
 
-# Salin hanya file yang dibutuhkan OPC-UA server
+# Copy standalone demo server entrypoint
 COPY opcua_demo_server.py .
 
 EXPOSE 4840

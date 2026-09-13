@@ -1,19 +1,17 @@
-# Gunakan image Python 3.12 versi ringan
+# Multi-stage Python 3.12 slim base image
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install dependencies sistem
+# Install system runtime dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends gcc libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Salin requirements file terlebih dahulu (layer ini di-cache oleh Docker)
-# Layer ini hanya rebuild ulang jika requirements.txt berubah
+# Copy dependency requirements first to leverage Docker layer caching
 COPY requirements.txt .
 
-# Install Python packages menggunakan mirror PyPI Indonesia (Cendana/Badan Siber)
-# Jauh lebih cepat daripada download langsung dari files.pythonhosted.org
+# Install Python packages with timeout and retry resilience
 RUN pip install \
     --index-url https://pypi.org/simple/ \
     --extra-index-url https://pypi.python.org/simple/ \
@@ -21,7 +19,7 @@ RUN pip install \
     --retries 5 \
     -r requirements.txt
 
-# Salin seluruh kode backend
+# Copy application source code
 COPY . .
 
 EXPOSE 3000

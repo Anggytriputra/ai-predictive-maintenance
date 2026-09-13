@@ -1,6 +1,5 @@
-name: Frontend CI (Satpam Pengecek Kode FE)
+name: Frontend CI Pipeline
 
-# Bekerja setiap ada 'git push' atau PR ke branch 'main'
 on:
   push:
     branches:
@@ -15,14 +14,14 @@ on:
 
 jobs:
   build-and-test:
-    name: Mengecek Frontend (Next.js)
+    name: Frontend Verification (Next.js)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Kode
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js
+      - name: Setup Node.js Runtime
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -31,10 +30,9 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Test Build Frontend (Node langsung)
+      - name: Build Next.js Application
         working-directory: ./frontend
         run: npm run build
 
-      # Test Docker build — meniru environment production AWS yang sebenarnya
-      - name: Test Docker Build Frontend
+      - name: Validate Production Docker Image
         run: docker build --no-cache -t frontend-test ./frontend
