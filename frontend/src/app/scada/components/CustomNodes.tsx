@@ -55,8 +55,9 @@ export function MotorNode({ data }: { data: { label: string; sensorData?: Sensor
 
   return (
     <div className="relative" style={{ filter: `drop-shadow(0 0 12px ${st.glow})` }}>
-      <Handle type="source" position={Position.Right} id="out" style={{ top: '35%', right: -8, width: 12, height: 12, background: st.stroke, border: `2px solid ${st.stroke}cc` }} />
-      <Handle type="target" position={Position.Left} id="in" style={{ top: '35%', left: -8, width: 12, height: 12, background: st.stroke, border: `2px solid ${st.stroke}cc` }} />
+      {/* Handle centered on the motor shaft (38px from top of 80px SVG) */}
+      <Handle type="source" position={Position.Right} id="out" style={{ top: '38px', right: -8, width: 12, height: 12, background: st.stroke, border: `2px solid ${st.stroke}cc` }} />
+      <Handle type="target" position={Position.Left} id="in" style={{ top: '38px', left: -8, width: 12, height: 12, background: st.stroke, border: `2px solid ${st.stroke}cc` }} />
       <div className="w-28 h-20" style={{ opacity: running ? 1 : 0.45, transition: 'opacity 0.5s' }}>
         <MotorSymbol stroke={st.stroke} fill="#0d1117" />
       </div>
@@ -120,11 +121,12 @@ export function PumpNode({ data }: { data: { label: string; running?: boolean } 
   const stroke = running ? '#06b6d4' : '#6b7280';
   return (
     <div className="relative flex flex-col items-center" style={{ filter: `drop-shadow(0 0 8px ${running ? '#06b6d440' : 'transparent'})` }}>
-      <Handle type="target" position={Position.Left} id="in" style={{ top: '40%', left: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
-      <Handle type="source" position={Position.Right} id="out" style={{ top: '40%', right: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
+      {/* Handle centered on the pump nozzle centerline (30px from top) */}
+      <Handle type="target" position={Position.Left} id="in" style={{ top: '30px', left: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
+      <Handle type="source" position={Position.Right} id="out" style={{ top: '30px', right: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
       <div className="w-20 h-16"><PumpSymbol stroke={stroke} running={running} /></div>
       <span className="text-[10px] font-bold font-mono mt-0.5" style={{ color: stroke }}>{data.label}</span>
-      <span className="text-[9px] text-gray-600">{running ? '▶ Running' : '■ Stopped'}</span>
+      <span className="text-[9px] text-gray-500">{running ? '▶ Running' : '■ Stopped'}</span>
     </div>
   );
 }
@@ -134,8 +136,9 @@ export function ValveNode({ data }: { data: { label: string; open?: boolean } })
   const stroke = isOpen ? '#f59e0b' : '#6b7280';
   return (
     <div className="relative flex flex-col items-center" style={{ filter: `drop-shadow(0 0 8px ${isOpen ? '#f59e0b40' : 'transparent'})` }}>
-      <Handle type="target" position={Position.Left} id="in" style={{ top: '58%', left: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
-      <Handle type="source" position={Position.Right} id="out" style={{ top: '58%', right: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
+      {/* Handle centered on the valve pipe centerline (38px from top) */}
+      <Handle type="target" position={Position.Left} id="in" style={{ top: '38px', left: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
+      <Handle type="source" position={Position.Right} id="out" style={{ top: '38px', right: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
       <div className="w-14 h-20"><ValveSymbol stroke={stroke} isOpen={isOpen} /></div>
       <span className="text-[10px] font-bold font-mono -mt-1" style={{ color: stroke }}>{data.label}</span>
     </div>
@@ -149,11 +152,16 @@ export function ReactorNode({ data }: { data: { label: string; pressure?: number
 
   return (
     <div className="relative flex flex-col items-center" style={{ filter: 'drop-shadow(0 0 10px #a855f730)' }}>
-      <Handle type="target" position={Position.Left} id="in" style={{ top: '50%', left: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
-      <Handle type="source" position={Position.Right} id="out" style={{ top: '50%', right: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
+      {/* Inlet 1: Top Left Nozzle from Train 1 (FCV-101) */}
+      <Handle type="target" position={Position.Left} id="in" style={{ top: '26%', left: -6, width: 10, height: 10, background: '#f59e0b', border: '2px solid #f59e0bcc' }} />
+      {/* Inlet 2: Bottom Left Nozzle from Train 2 (FCV-102) */}
+      <Handle type="target" position={Position.Left} id="in2" style={{ top: '74%', left: -6, width: 10, height: 10, background: '#f59e0b', border: '2px solid #f59e0bcc' }} />
+      {/* Outlet: Center Right Nozzle to Discharge Train */}
+      <Handle type="source" position={Position.Right} id="out" style={{ top: '50%', right: -6, width: 10, height: 10, background: '#f59e0b', border: '2px solid #f59e0bcc' }} />
+      
       <div className="w-24 h-28"><TankSymbol stroke={stroke} level={level} /></div>
       <span className="text-[10px] font-bold font-mono mt-1 text-purple-400">{data.label}</span>
-      <div className="flex gap-2 text-[9px] text-gray-500 font-mono mt-0.5">
+      <div className="flex gap-2 text-[9px] text-gray-400 font-mono mt-0.5">
         <span>{pressure.toFixed(1)} bar</span>
         <span>•</span>
         <span>{level}%</span>
