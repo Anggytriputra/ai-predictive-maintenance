@@ -6,11 +6,15 @@ import { Zap } from "lucide-react";
 import { MotorListCard } from "./components/MotorListCard";
 import { MotorAnalytics } from "./components/MotorAnalytics";
 
-interface SensorData {
+export interface SensorData {
   motorId: string;
   timestamp: string;
+  running?: boolean;
+  rpm?: number;
   temperature: number;
   vibration: number;
+  bearingHealth?: number;
+  phase?: string;
   currentR: number;
   currentS: number;
   currentT: number;
@@ -35,7 +39,6 @@ export default function Dashboard() {
     newSocket.on("sensor_overview", (data: SensorData) => {
       setMotors((prev) => {
         const history = prev[data.motorId] || [];
-
         const updatedHistory = [...history, data].slice(-20);
         return { ...prev, [data.motorId]: updatedHistory };
       });

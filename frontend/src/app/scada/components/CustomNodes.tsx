@@ -11,6 +11,7 @@ export interface SensorData {
   motorId: string;
   temperature: number;
   vibration: number;
+  rpm?: number;
   currentR: number;
   running: boolean;
 }
@@ -66,11 +67,13 @@ export function MotorNode({ data }: { data: { label: string; sensorData?: Sensor
             <span className={`w-2 h-2 rounded-full ${running ? 'animate-pulse' : ''}`} style={{ background: st.stroke }} />
             <span className="text-[10px] font-bold font-mono" style={{ color: st.stroke }}>{displayStatus}</span>
           </div>
-          {sensor && running && <span className="text-[9px] text-gray-500 font-mono">{sensor.temperature.toFixed(0)}°C</span>}
+          <span className="text-[9px] text-gray-400 font-mono font-semibold">
+            {running ? `${Math.round(sensor?.rpm ?? 1485)} RPM` : '0 RPM'}
+          </span>
         </div>
         {confirming === 'stop' && (
           <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-2 text-center">
-            <p className="text-[10px] text-red-300 mb-1.5 font-semibold">⚠ Stop {data.label}?</p>
+            <p className="text-[10px] text-red-300 mb-1.5 font-semibold">⚠️ Stop {data.label}?</p>
             <div className="flex gap-1.5">
               <button onClick={() => handleCommand('stop')} disabled={loading} className="flex-1 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold py-1 rounded-md transition-colors disabled:opacity-50">{loading ? '...' : 'CONFIRM'}</button>
               <button onClick={() => setConfirming(null)} className="flex-1 bg-white/10 hover:bg-white/20 text-gray-300 text-[10px] font-bold py-1 rounded-md transition-colors">CANCEL</button>
@@ -94,15 +97,20 @@ export function MotorNode({ data }: { data: { label: string; sensorData?: Sensor
         )}
       </div>
       {sensor && running && (
-        <div className="absolute left-1/2 -translate-x-1/2 mt-2 top-full w-40 z-10 rounded-xl border bg-[#0d1117]/95 p-2.5 backdrop-blur shadow-2xl" style={{ borderColor: st.stroke + '50' }}>
+        <div className="absolute left-1/2 -translate-x-1/2 mt-2 top-full w-44 z-10 rounded-xl border bg-[#0d1117]/95 p-2.5 backdrop-blur shadow-2xl" style={{ borderColor: st.stroke + '50' }}>
           <div className="space-y-1">
-            <div className="flex justify-between text-[11px]"><span className="text-gray-500">🌡 Temp</span><span className="font-mono font-bold text-rose-400">{sensor.temperature.toFixed(1)}°C</span></div>
-            <div className="flex justify-between text-[11px]"><span className="text-gray-500">〰 Vibr.</span><span className="font-mono font-bold text-violet-400">{sensor.vibration.toFixed(2)} mm/s</span></div>
-            <div className="flex justify-between text-[11px]"><span className="text-gray-500">⚡ I (R)</span><span className="font-mono font-bold text-cyan-400">{sensor.currentR.toFixed(2)} A</span></div>
+            <div className="flex justify-between text-[11px]"><span className="text-gray-500">Speed</span><span className="font-mono font-bold text-cyan-400">{Math.round(sensor.rpm ?? 1485)} RPM</span></div>
+            <div className="flex justify-between text-[11px]"><span className="text-gray-500">Temp</span><span className="font-mono font-bold text-rose-400">{sensor.temperature.toFixed(1)}°C</span></div>
+            <div className="flex justify-between text-[11px]"><span className="text-gray-500">Vibr.</span><span className="font-mono font-bold text-violet-400">{sensor.vibration.toFixed(2)} mm/s</span></div>
+            <div className="flex justify-between text-[11px]"><span className="text-gray-500">I (Phase R)</span><span className="font-mono font-bold text-emerald-400">{sensor.currentR.toFixed(2)} A</span></div>
           </div>
         </div>
       )}
-      {sensor && !running && <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 text-[10px] text-gray-600 whitespace-nowrap font-mono">Motor offline — 28~35°C ambient</div>}
+      {sensor && !running && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 text-[10px] text-gray-500 whitespace-nowrap font-mono">
+          0 RPM • Motor stopped (standby)
+        </div>
+      )}
     </div>
   );
 }
@@ -138,21 +146,17 @@ export function ReactorNode({ data }: { data: { label: string; pressure?: number
   const pressure = data.pressure ?? 2.4;
   const level = data.level ?? 68;
   const stroke = '#a855f7';
+
   return (
-    <div className="relative flex flex-col items-center" style={{ filter: 'drop-shadow(0 0 16px #a855f740)' }}>
-      <Handle type="target" position={Position.Left} id="in" style={{ top: '22%', left: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
-      <Handle type="target" position={Position.Left} id="in2" style={{ top: '55%', left: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
-      <Handle type="source" position={Position.Right} id="out" style={{ top: '80%', right: -6, width: 10, height: 10, background: '#f97316', border: '2px solid #f97316cc' }} />
-      <div className="w-24 h-48"><TankSymbol stroke={stroke} level={level} /></div>
-      <div className="w-36 rounded-xl border bg-[#0d1117]/95 px-3 py-2 backdrop-blur shadow-2xl mt-1" style={{ borderColor: stroke + '50' }}>
-        <p className="text-[10px] font-bold text-gray-400 text-center uppercase tracking-widest mb-1.5">{data.label}</p>
-        <div className="space-y-1">
-          <div className="flex justify-between text-[11px]"><span className="text-gray-500">⊙ Pressure</span><span className="font-mono font-bold text-purple-400">{pressure.toFixed(1)} bar</span></div>
-          <div className="flex justify-between text-[11px]"><span className="text-gray-500">▨ Level</span><span className="font-mono font-bold text-fuchsia-400">{level}%</span></div>
-        </div>
-        <div className="mt-2 h-1.5 bg-white/5 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-purple-600 to-fuchsia-500 rounded-full transition-all duration-1000" style={{ width: `${level}%` }} />
-        </div>
+    <div className="relative flex flex-col items-center" style={{ filter: 'drop-shadow(0 0 10px #a855f730)' }}>
+      <Handle type="target" position={Position.Left} id="in" style={{ top: '50%', left: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
+      <Handle type="source" position={Position.Right} id="out" style={{ top: '50%', right: -6, width: 10, height: 10, background: stroke, border: `2px solid ${stroke}cc` }} />
+      <div className="w-24 h-28"><TankSymbol stroke={stroke} pressure={pressure} level={level} /></div>
+      <span className="text-[10px] font-bold font-mono mt-1 text-purple-400">{data.label}</span>
+      <div className="flex gap-2 text-[9px] text-gray-500 font-mono mt-0.5">
+        <span>{pressure.toFixed(1)} bar</span>
+        <span>•</span>
+        <span>{level}%</span>
       </div>
     </div>
   );

@@ -3,10 +3,11 @@ IoT Simulator — Realistic Degradation Pattern Engine for Industrial Motors.
 
 Replaces the naive random-data generator with physics-inspired simulation:
 - Thermal model: temperature rises under load, dissipates when stopped
-- Bearing wear: vibration follows bathtub curve → gradual → accelerated
+- Bearing wear: vibration follows bathtub curve -> gradual -> accelerated
+- RPM speed: rated RPM (1485 / 2970) with inrush ramp-up, drops to 0 RPM when stopped
 - Electrical: 3-phase current/voltage with realistic imbalance on degradation
 - Startup transient: inrush current spike (6-8x rated) on motor start
-- Degradation lifecycle: HEALTHY → DEGRADING → WARNING → CRITICAL → FAILURE
+- Degradation lifecycle: HEALTHY -> DEGRADING -> WARNING -> CRITICAL -> FAILURE
 
 Each motor has its own independent state, so one can be healthy while another
 is approaching failure — just like in a real plant.
@@ -24,9 +25,9 @@ from app.core.config import settings
 logger = logging.getLogger("iot_simulator")
 
 
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # Motor Degradation Phases
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 class Phase:
     HEALTHY = "HEALTHY"          # Normal operation, stable readings
@@ -37,7 +38,6 @@ class Phase:
 
 
 # Phase durations in ticks (1 tick = SIMULATOR_INTERVAL seconds = 2s)
-# These determine how long each phase lasts before transitioning
 PHASE_DURATION = {
     Phase.HEALTHY: 450,     # ~15 minutes of normal operation
     Phase.DEGRADING: 300,   # ~10 minutes of subtle degradation
@@ -47,9 +47,9 @@ PHASE_DURATION = {
 }
 
 
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # Motor Physical State
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 class MotorState:
     """
@@ -71,6 +71,10 @@ class MotorState:
         self.temperature: float = 35.0       # deg C — starts at ambient
         self.vibration: float = 0.8          # mm/s RMS
         self.bearing_health: float = 1.0     # 1.0 = perfect, 0.0 = destroyed
+
+        # --- Rotational speed (RPM) ---
+        # 4-pole motor (1500 synch / ~1485 rated) for HV, 2-pole (~2970 rated) for MV
+        self.rated_rpm: float = 1485.0 if self.is_hv else 2970.0
 
         # --- Electrical base values ---
         self.rated_current: float = 50.0     # Amperes (nominal)
@@ -100,9 +104,9 @@ class MotorState:
         logger.info(f"Motor {self.motor_id} — maintenance performed, reset to HEALTHY")
 
 
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # Singleton: all motor states
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 _motor_states: Dict[str, MotorState] = {}
 
@@ -114,18 +118,18 @@ def _get_state(motor_id: str) -> MotorState:
     return _motor_states[motor_id]
 
 
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # Noise helper
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def _noise(base: float, pct: float = 0.02) -> float:
     """Add Gaussian noise to a value. pct = noise as fraction of base."""
     return round(base + random.gauss(0, base * pct), 2)
 
 
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # Physics simulation per tick
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def _advance_phase(state: MotorState):
     """Advance the degradation phase if enough ticks have passed."""
@@ -200,15 +204,16 @@ def _simulate_temperature(state: MotorState, running: bool) -> float:
 def _simulate_vibration(state: MotorState, running: bool) -> float:
     """
     Vibration model based on ISO 10816 severity standards:
+    - Stopped: 0.0 mm/s (no rotation = zero mechanical vibration)
     - HEALTHY: low, stable vibration (0.8 - 1.5 mm/s)
-    - DEGRADING: subtle increase (1.5 - 3.0) — only ML should catch this
-    - WARNING: clearly elevated (3.0 - 6.0)
-    - CRITICAL: high with occasional spikes (6.0 - 10.0)
-    - FAILURE: erratic, very high (10.0+)
+    - DEGRADING: subtle increase (1.5 - 3.2)
+    - WARNING: clearly elevated (3.2 - 6.5)
+    - CRITICAL: high with occasional spikes (6.5 - 11.0)
+    - FAILURE: erratic, very high (11.0 - 18.0)
     """
     if not running:
-        state.vibration = max(0.0, state.vibration * 0.9)  # Decay to zero
-        return round(state.vibration, 2)
+        state.vibration = 0.0
+        return 0.0
 
     phase_ranges = {
         Phase.HEALTHY: (0.8, 1.5),
@@ -230,6 +235,25 @@ def _simulate_vibration(state: MotorState, running: bool) -> float:
             state.vibration += random.uniform(1.0, 3.0)
 
     return _noise(state.vibration, pct=0.04)
+
+
+def _simulate_rpm(state: MotorState, running: bool) -> float:
+    """
+    Simulate rotational speed (RPM):
+    - Stopped: 0.0 RPM
+    - Starting up: ramps up from 0 to rated speed during inrush
+    - Running: rated speed minus slight load slip and electrical noise
+    """
+    if not running:
+        return 0.0
+
+    if state.startup_ticks > 0:
+        progress = (5 - state.startup_ticks) / 5.0
+        return round(state.rated_rpm * progress, 1)
+
+    slip = 0.01 + (1.0 - state.bearing_health) * 0.015
+    target_rpm = state.rated_rpm * (1.0 - slip)
+    return round(_noise(target_rpm, pct=0.003), 1)
 
 
 def _simulate_bearing_health(state: MotorState, running: bool):
@@ -256,14 +280,10 @@ def _simulate_electrical(
 ) -> dict:
     """
     3-phase electrical simulation:
+    - Stopped: 0.0 Amps, voltages at standard grid levels
     - Healthy: balanced currents/voltages with minimal variation
     - Degraded: current rises (mechanical load increases), imbalance grows
     - Startup: inrush current 6-8x rated for first few ticks
-
-    Models real motor behavior:
-    - Higher vibration = higher mechanical friction = higher current draw
-    - Bearing failure = current imbalance between phases
-    - Neutral current rises with phase imbalance (ground fault indicator)
     """
     if not running:
         return {
@@ -299,30 +319,26 @@ def _simulate_electrical(
         }
 
     # --- Steady-state current ---
-    # Current rises as bearing degrades (more mechanical friction)
-    load_factor = 1.0 + (1.0 - state.bearing_health) * 0.25  # Up to +25%
-    vibration_factor = 1.0 + max(0, vibration - 2.0) * 0.02   # Vibration adds load
+    load_factor = 1.0 + (1.0 - state.bearing_health) * 0.25
+    vibration_factor = 1.0 + max(0, vibration - 2.0) * 0.02
     base_current = state.rated_current * load_factor * vibration_factor
 
-    # Phase imbalance grows with degradation
     imbalance_pct = {
-        Phase.HEALTHY: 0.01,     # 1% — perfectly normal
-        Phase.DEGRADING: 0.03,   # 3% — subtle, within spec
+        Phase.HEALTHY: 0.01,     # 1% — normal
+        Phase.DEGRADING: 0.03,   # 3% — subtle
         Phase.WARNING: 0.06,     # 6% — noticeable
         Phase.CRITICAL: 0.12,    # 12% — serious
         Phase.FAILURE: 0.20,     # 20% — severe
     }.get(state.phase, 0.01)
 
-    # Each phase gets a slightly different current (realistic imbalance)
     imbalance_r = random.uniform(-imbalance_pct, imbalance_pct)
     imbalance_s = random.uniform(-imbalance_pct, imbalance_pct)
-    imbalance_t = -(imbalance_r + imbalance_s) * 0.5  # Partial compensation
+    imbalance_t = -(imbalance_r + imbalance_s) * 0.5
 
     current_r = _noise(base_current * (1 + imbalance_r), pct=0.01)
     current_s = _noise(base_current * (1 + imbalance_s), pct=0.01)
     current_t = _noise(base_current * (1 + imbalance_t), pct=0.01)
 
-    # Neutral current = indicator of ground fault / insulation breakdown
     neutral_base = abs(current_r + current_s + current_t) * 0.1
     neutral_degradation = {
         Phase.HEALTHY: 0.5,
@@ -333,7 +349,6 @@ def _simulate_electrical(
     }.get(state.phase, 0.5)
     current_n = _noise(neutral_base + neutral_degradation, pct=0.08)
 
-    # Voltage is relatively stable (supplied by grid), slight variation
     voltage_r = _noise(state.base_voltage, pct=0.005)
     voltage_s = _noise(state.base_voltage, pct=0.005)
     voltage_t = _noise(state.base_voltage, pct=0.005)
@@ -349,14 +364,13 @@ def _simulate_electrical(
     }
 
 
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # Main simulation tick
-# ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def generate_sensor_data(motor_id: str, running: bool) -> dict:
     """
     Generate realistic sensor data for one motor for one tick.
-    Drop-in replacement for the old random-based generator.
     """
     state = _get_state(motor_id)
 
@@ -377,12 +391,14 @@ def generate_sensor_data(motor_id: str, running: bool) -> dict:
     # Generate sensor readings
     temperature = _simulate_temperature(state, running)
     vibration = _simulate_vibration(state, running)
+    rpm = _simulate_rpm(state, running)
     electrical = _simulate_electrical(state, running, vibration)
 
     return {
         "motorId": motor_id,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "running": running,
+        "rpm": rpm,
         "temperature": temperature,
         "vibration": vibration,
         "bearingHealth": round(state.bearing_health * 100, 1),
